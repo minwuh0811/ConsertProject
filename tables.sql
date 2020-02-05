@@ -6,18 +6,19 @@ CREATE TABLE artist (
 );
 
 CREATE TABLE location(
-    land varchar(20) not null,
-    stad varchar(20) not null,
+    city varchar(20) not null,
+    street varchar(100) not null,
     popularity float(5) not null,
-    Primary key (land,stad)
+    country varchar(20) not null,
+    Primary key (city,street)
 );
 
 create table scen(
     scenid bigint primary key,
     scename varchar(50) not null,
-    land varchar(20) not null,
-    stad varchar(20) not null,
-    CONSTRAINT fk_scen_land_stad FOREIGN KEY (land,stad) REFERENCES location(land,stad)
+    city varchar(20) not null,
+    street varchar(100) not null,
+    CONSTRAINT fk_scen_land_stad FOREIGN KEY (city,street) REFERENCES location(city,street)
 );
 
 CREATE TABLE konsert (

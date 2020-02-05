@@ -52,13 +52,21 @@ CREATE TABLE customer(
     CONSTRAINT fk_customer_pesetakontor FOREIGN KEY (pesetakontor) REFERENCES peseta(pesetakontor)
 );
 
-
-
-CREATE TABLE kuppong(
-    kuppongID bigserial primary key,
+CREATE TABLE kupong(
+    kupongid bigserial primary key,
     username varchar not null,
     date date not null,
     invaliddate date not null,
     CONSTRAINT fk_kuppong_username FOREIGN key (username) REFERENCES customer (username)
 );
 
+CREATE TABLE booking(
+    orderid bigserial primary key,
+    date date not null,
+    scenid bigint not null,
+    username varchar(50) not null,
+    kupongid bigserial not null,
+    CONSTRAINT fk_booking_date_scenid FOREIGN key (date, scenid) REFERENCES konsert(date,scenid),
+    CONSTRAINT fk_bokking_username FOREIGN key(username) REFERENCES customer(username),
+    CONSTRAINT fk_booking_kupongid FOREIGN key (kupongid) REFERENCES kupong(kupongid)    
+);

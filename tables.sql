@@ -1,73 +1,102 @@
-CREATE TABLE artist (
-    artistid bigint Primary Key,
-    firstname varchar(20) not null,
-    lastname varchar(20) not null,
-    popularity float(5) not null 
+create table min.artist (
+	artistid int primary key,
+	firstname varchar(255) not null,
+	lastname varchar (255) not null,
+	popularity int not null check (popularity in (0,1,2,3,4,5))
 );
 
-CREATE TABLE location(
-    city varchar(20) not null,
-    street varchar(100) not null,
-    popularity float(5) not null,
-    country varchar(20) not null,
-    Primary key (city,street)
+create table min.location (
+	city varchar(255) not null,
+	street varchar(255) not null,
+	popularity int not null check (popularity in (0,1,2,3,4,5)),
+    primary key(city,street)
 );
 
-create table scen(
-    scenid bigint primary key,
-    scename varchar(50) not null,
-    city varchar(20) not null,
-    street varchar(100) not null,
-    CONSTRAINT fk_scen_land_stad FOREIGN KEY (city,street) REFERENCES location(city,street)
+CREATE TABLE min.admin(
+    adID int primary key,
+    name varchar(50) not null,
+    login varchar(50) not null
 );
 
-CREATE TABLE konsert (
+
+create table min.scene (
+	sceneid int primary key,
+	city varchar(255) not null,
+	street varchar(255) not null,
+	scenename varchar(255) not null,
+	capacity int not null check (capacity >=0),
+    CONSTRAINT FK_scene_city_street FOREIGN KEY (street, city) REFERENCES min.location(street, city)
+);
+
+
+create table min.customer (
+	customerid int primary key,
+	customername varchar(255) not null,
+	login varchar(255) not null
+);
+
+CREATE TABLE min.concert(
+    concertid bigint not null,
+    name varchar(255) not null,
+    date timestamp not null,
+    state varchar(255) not null check (state in ('active', 'cancelled')),
+    primary key(concertid, date)
+);
+
+CREATE TABLE min.ticket(
+    serials bigserial primary key,  
+    concertid bigint not null,
+    date timestamp not null,
+    CONSTRAINT FK_ticket_concertid_date FOREIGN KEY (concertid, date) REFERENCES min.concert(concertid, date)
+);
+
+
+CREATE TABLE min.pesetaaccount(
+    pesetaaccount int primary key,
+    balance integer not null check (balance >=0),
+    CONSTRAINT FK_pesetaaccount FOREIGN KEY (pesetaaccount) REFERENCES  min.customer(pesetaaccount)
+);
+
+CREATE TABLE min.coupon(
+    couponID bigserial primary key,
+    value varchar(50) not null,
     date date not null,
-    time time not null,
-    scenid bigint not null,
-    artistid bigint not null,
-    state varchar(10) not null check (state in ('cancelled','active','passed' )),
-    primary key (date,scenid),
-    UNIQUE (date,artistid),
-    CONSTRAINT fK_konsert_scenid FOREIGN key (scenid) REFERENCES scen(scenid),
-    CONSTRAINT fk_konsert_artistid FOREIGN key (artistid) REFERENCES artist(artistid)
+    invaliddate date not null
 );
 
-CREATE TABLE ticket(
-    date date not null,
-    scenid bigint not null,
-    pris integer not null,
-    storage integer not null check (storage >= 0),
-    primary key (date,scenid),
-    CONSTRAINT fk_ticket_scenid_date FOREIGN key (date,scenid) REFERENCES konsert(date,scenid)
+CREATE TABLE min.participate(
+    adID int not null,
+    artistid int not null,
+    concertid bigint not null,
+    date timestamp not null,
+    primary key(artistid, adID, concertid, date),
+    CONSTRAINT FK_participate_artistid FOREIGN KEY (artistid) REFERENCES min.artist(artistid),
+    CONSTRAINT FK_participate_concerid_date FOREIGN KEY (concertid, date) REFERENCES min.concert(concertid, date),
+    CONSTRAINT FK_participate_adID FOREIGN KEY (adID) REFERENCES min.admin(adID)
+
 );
 
-CREATE TABLE peseta(
-    pesetakontor bigserial primary key,
-    balance integer not null check (balance >=0)
+CREATE TABLE min.hold(
+    sceneid int not null,
+    concertid bigint not null,
+    date timestamp not null,
+    primary key(sceneid,concertid,date),
+    unique(sceneid,date),
+    CONSTRAINT FK_hold_sceneid FOREIGN KEY (sceneid) REFERENCES  min.scene(sceneid),
+    CONSTRAINT FK_hold_concerid_date FOREIGN KEY (concertid, date) REFERENCES min.concert(concertid, date)
 );
 
-CREATE TABLE customer(
-    username varchar(50) primary key,
-    pesetakontor bigserial not null,
-    CONSTRAINT fk_customer_pesetakontor FOREIGN KEY (pesetakontor) REFERENCES peseta(pesetakontor)
+CREATE TABLE min.coupontoCustomer(
+    couponID bigserial primary key,
+    customerid int not null,
+    CONSTRAINT FK_coupontoCustomer_customerid FOREIGN KEY (customerid) REFERENCES  min.customer(customerid),
+    CONSTRAINT FK_coupontoCustomer_adID FOREIGN KEY (adID) REFERENCES min.admin(adID)
 );
 
-CREATE TABLE kupong(
-    kupongid bigserial primary key,
-    username varchar not null,
-    date date not null,
-    invaliddate date not null,
-    CONSTRAINT fk_kuppong_username FOREIGN key (username) REFERENCES customer (username)
+CREATE TABLE min.order(
+    serials bigserial primary key, 
+    customerid int not null,
+    CONSTRAINT FK_order_customerid FOREIGN KEY (customerid) REFERENCES  min.customer(customerid),
+    CONSTRAINT FK_order_serials FOREIGN KEY (serials) REFERENCES min.ticket(serials)
 );
 
-CREATE TABLE booking(
-    orderid bigserial primary key,
-    date date not null,
-    scenid bigint not null,
-    username varchar(50) not null,
-    kupongid bigserial not null,
-    CONSTRAINT fk_booking_date_scenid FOREIGN key (date, scenid) REFERENCES konsert(date,scenid),
-    CONSTRAINT fk_bokking_username FOREIGN key(username) REFERENCES customer(username),
-    CONSTRAINT fk_booking_kupongid FOREIGN key (kupongid) REFERENCES kupong(kupongid)    
-);
